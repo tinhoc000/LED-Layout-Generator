@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<meta name="theme-color" content="#1f2329" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="LED Layout" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<title>LED Layout Generator – iPad</title>
+<style>
+:root{--bg:#1f2329;--panel:#2b3038;--panel2:#343a43;--line:#4a515c;--text:#edf1f5;--muted:#aeb7c2;--accent:#4ea1ff;--good:#55c27a;--warn:#ffca58;--danger:#ff6b6b;}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:14px/1.35 "Segoe UI",Arial,sans-serif;height:100vh;overflow:hidden}
+.app{display:grid;grid-template-columns:410px 1fr;height:100vh}.sidebar{overflow:auto;padding:14px;background:#252a31;border-right:1px solid #16191e}.main{display:grid;grid-template-rows:auto 1fr auto;min-width:0;padding:14px;gap:10px}
+.brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.brand h1{font-size:20px;margin:0}.version{color:var(--muted);font-size:12px}
+.card{background:var(--panel);border:1px solid #3c424b;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 1px 0 rgba(255,255,255,.03) inset}.card h2{font-size:14px;margin:0 0 10px;color:#fff}.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:8px 10px;align-items:center}.grid2 label{color:#dce2e9}.full{grid-column:1/-1}.hint{font-size:12px;color:var(--muted);margin-top:7px}.statusHint{font-size:12px;color:var(--warn);min-height:18px}
+input[type=text],input[type=number],select{width:100%;background:#1e2228;color:var(--text);border:1px solid #505866;border-radius:6px;padding:7px 8px;outline:none}input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(78,161,255,.16)}
+input[type=color]{width:42px;height:30px;padding:1px;border:1px solid #59616d;border-radius:5px;background:#1e2228}.colorrow{display:grid;grid-template-columns:1fr auto 92px;gap:8px;align-items:center}.colorhex{font-family:Consolas,monospace;font-size:12px}
+.checkrow{display:flex;gap:8px;align-items:center}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.buttons .wide{grid-column:1/-1}button{appearance:none;border:1px solid #58616d;background:#3a414b;color:white;padding:8px 10px;border-radius:7px;cursor:pointer;font-weight:600}button:hover{background:#464e5a}button.primary{background:#1677d8;border-color:#2b86df}button.primary:hover{background:#2185e5}button.good{background:#2f7d4c;border-color:#3d9860}.topbar{display:flex;gap:10px;align-items:center}.topbar .summary{flex:1;color:#dfe5ec}.badge{display:inline-block;background:#323944;border:1px solid #4c5562;border-radius:999px;padding:4px 8px;color:#cbd3dc;font-size:12px;margin-right:6px}
+.previewWrap{position:relative;min-height:0;background:#15181d;border:1px solid #343a43;border-radius:10px;overflow:auto}.previewWrap canvas{display:block;margin:auto}.previewNote{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.72);padding:5px 8px;border-radius:6px;color:#fff;font-size:12px;display:none;z-index:2}.zoomControls{display:flex;align-items:center;gap:6px;white-space:nowrap}.zoomControls input{width:150px}.zoomPct{min-width:52px;text-align:center;color:#dce3ea;font-variant-numeric:tabular-nums}
+.footer{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px}.footer strong{color:#dce3ea}.fileInput{display:none}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row button{flex:0 0 auto}.smallbtn{padding:6px 8px;font-size:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10}.modal.show{display:flex}.dialog{width:min(760px,90vw);max-height:86vh;overflow:auto;background:#292f37;border:1px solid #4a535f;border-radius:12px;padding:18px}.dialog h3{margin-top:0}.dialog pre{white-space:pre-wrap;background:#171a1f;padding:12px;border-radius:8px;color:#dce3ea}.dialog .close{float:right}.sectionColorList{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:8px;margin:12px 0}.sectionColorRow{display:grid;grid-template-columns:40px 42px 88px 54px;gap:7px;align-items:center;background:#20252c;border:1px solid #3e4651;border-radius:8px;padding:8px}.sectionColorRow strong{font-size:15px}.modalActions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+@media(max-width:900px){body{overflow:auto}.app{grid-template-columns:1fr;height:auto}.sidebar{border-right:0;border-bottom:1px solid #16191e}.main{min-height:70vh}.previewWrap{min-height:500px}}
+
+html{height:100%;background:var(--bg);overscroll-behavior:none}
+body{padding-top:env(safe-area-inset-top);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+input,select,textarea{font-size:16px}
+button{min-height:42px;touch-action:manipulation}
+.previewWrap{touch-action:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.previewWrap.dragging{cursor:grabbing}
+.previewWrap canvas{max-width:none;max-height:none}
+.ipadOnly{display:none}
+.drawerToggle{display:none}
+.installHint{background:#1f2d3b;border:1px solid #38516a;border-radius:8px;padding:9px 10px;margin-top:8px;color:#d9e8f7}
+.installHint strong{color:white}
+@media (pointer:coarse){
+  button{min-height:46px;font-size:15px}
+  .smallbtn{min-height:40px;padding:8px 11px;font-size:14px}
+  input[type=color]{width:50px;height:38px}
+  .zoomControls input{width:180px}
+  .ipadOnly{display:block}
+}
+@media (max-width:900px) and (orientation:portrait){
+  body{overflow:hidden}
+  .app{display:block;height:calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+  .sidebar{position:fixed;z-index:30;left:env(safe-area-inset-left);top:env(safe-area-inset-top);bottom:env(safe-area-inset-bottom);width:min(88vw,410px);transform:translateX(-105%);transition:transform .22s ease;border-right:1px solid #16191e;border-bottom:0;box-shadow:8px 0 24px rgba(0,0,0,.38)}
+  .sidebar.open{transform:translateX(0)}
+  .main{height:100%;min-height:0;padding:10px;grid-template-rows:auto 1fr auto}
+  .previewWrap{min-height:0}
+  .drawerToggle{display:inline-flex}
+  .topbar{gap:6px;flex-wrap:wrap}
+  .topbar .summary{order:3;flex-basis:100%;font-size:12px}
+  .zoomControls{flex:1}
+  .zoomControls input{width:min(30vw,180px)}
+}
+@media (min-width:901px){
+  .sidebarBackdrop{display:none!important}
+}
+.sidebarBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:25;display:none}
+.sidebarBackdrop.show{display:block}
+
+@media print{body{background:white}.sidebar,.topbar,.footer,.previewNote{display:none!important}.app{display:block}.main{padding:0}.previewWrap{border:0;background:white;height:auto}.previewWrap canvas{width:100%!important;height:auto!important;max-height:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><h1>LED Layout Generator</h1><span class="version">v2.2 • iPad PWA • Offline</span></div>
+
+    <section class="card">
+      <h2>Layout</h2>
+      <div class="grid2">
+        <label for="modulesWide">Modules wide</label><input id="modulesWide" type="number" min="1" value="168">
+        <label for="rowGroups">Vertical section rows</label><input id="rowGroups" type="text" value="9,9,9,8,8">
+        <label for="colGroups">Horizontal section widths</label><input id="colGroups" type="text" value="6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6">
+        <label for="sectionsPerBlock">Sections per alphabet block</label><input id="sectionsPerBlock" type="number" min="1" value="7">
+        <div id="layoutTotal" class="full hint"></div>
+        <div id="layoutWarning" class="full statusHint"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>View</h2>
+      <div class="grid2">
+        <label for="horizontalView">Horizontal view</label>
+        <select id="horizontalView"><option>Front</option><option>Rear</option></select>
+        <label for="verticalOrder">Vertical label order</label>
+        <select id="verticalOrder"><option>Bottom to Top</option><option>Top to Bottom</option></select>
+      </div>
+      <div class="hint">Front starts from the right; Rear mirrors the layout and starts from the left. Vertical order independently chooses whether A / row 1 starts at the bottom or top.</div>
+    </section>
+
+    <section class="card">
+      <h2>Colors</h2>
+      <div class="colorrow"><label>Color 1 (A, C, E…)</label><input id="color1" type="color" value="#f4cccc"><input id="color1Hex" class="colorhex" type="text" value="#F4CCCC"></div>
+      <div class="colorrow"><label>Color 2 (B, D, F…)</label><input id="color2" type="color" value="#fff2cc"><input id="color2Hex" class="colorhex" type="text" value="#FFF2CC"></div>
+      <div class="colorrow"><label>Text labels</label><input id="textColor" type="color" value="#000000"><input id="textColorHex" class="colorhex" type="text" value="#000000"></div>
+      <div class="colorrow"><label>Grid lines</label><input id="gridColor" type="color" value="#000000"><input id="gridColorHex" class="colorhex" type="text" value="#000000"></div>
+    </section>
+
+    <section class="card">
+      <h2>Individual Section Colors</h2>
+      <button class="wide" id="editSectionColorsBtn">Edit Section Colors</button>
+      <div id="sectionColorSummary" class="hint">Uses the alternating colors until you override individual letter sections.</div>
+    </section>
+
+    <section class="card">
+      <h2>Module Size</h2>
+      <div class="grid2">
+        <label for="moduleWidth">Module width (px)</label><input id="moduleWidth" type="number" min="2" value="60">
+        <label for="moduleHeight">Module height (px)</label><input id="moduleHeight" type="number" min="2" value="60">
+        <label for="gridThickness">Grid thickness (px)</label><input id="gridThickness" type="number" min="1" value="2">
+        <div class="full checkrow"><input id="showLabels" type="checkbox" checked><label for="showLabels">Show module labels</label></div>
+      </div>
+      <div class="hint">Width and height are independent, so rectangular modules such as 100 × 50 or 50 × 100 are supported.</div>
+    </section>
+
+    <section class="card">
+      <h2>Files & Export</h2>
+      <div class="buttons">
+        <button class="primary wide" id="refreshBtn">Refresh Preview</button>
+        <button id="svgBtn">Export SVG</button><button id="pngBtn">Export PNG</button>
+        <button class="wide" id="pdfBtn">Export PDF</button>
+        <button id="savePresetBtn">Save Preset</button><button id="loadPresetBtn">Load Preset</button>
+        <button class="wide" id="resetBtn">Reset Defaults</button>
+      </div>
+      <input id="presetFile" class="fileInput" type="file" accept="application/json,.json">
+    </section>
+
+    <section class="card">
+      <h2>iPad / PWA</h2>
+      <div class="hint">Designed for Safari on iPad. After the site is hosted over HTTPS, use Safari <strong>Share → Add to Home Screen</strong>. The app then opens full-screen and works offline after the first successful load.</div>
+      <div class="installHint ipadOnly"><strong>Touch:</strong> pinch to zoom, drag to pan, and double-tap the preview to Fit.</div>
+      <div class="hint" id="pwaStatus">Checking app mode…</div>
+    </section>
+
+    <section class="card">
+      <h2>Runtime</h2>
+      <div class="hint">No Photoshop or Python is required on the iPad. Layout calculations and exports run locally in the browser/PWA.</div>
+    </section>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="smallbtn drawerToggle" id="settingsDrawerBtn">Settings</button>
+      <div class="summary" id="summary">Ready</div>
+      <div class="zoomControls" title="Preview zoom is relative to Fit">
+        <button class="smallbtn" id="zoomOutBtn">−</button>
+        <input id="zoomSlider" type="range" min="25" max="800" step="25" value="100">
+        <span id="zoomPct" class="zoomPct">100%</span>
+        <button class="smallbtn" id="zoomInBtn">+</button>
+        <button class="smallbtn" id="zoomFitBtn">Fit</button>
+      </div>
+      <button class="smallbtn" id="helpBtn">Quick Help</button>
+    </div>
+    <div class="previewWrap" id="previewWrap">
+      <canvas id="preview"></canvas>
+      <div id="previewNote" class="previewNote">Zoom in to display module labels. Exports always use the selected label setting.</div>
+    </div>
+    <div class="footer"><span id="startCorner"></span><span><strong>Tip:</strong> Use Preview Zoom to inspect module labels. SVG/PDF stay sharp.</span></div>
+  </main>
+</div>
+<div class="sidebarBackdrop" id="sidebarBackdrop"></div>
+
+<div class="modal" id="helpModal"><div class="dialog"><button class="close smallbtn" id="closeHelp">Close</button><h3>Quick Help</h3><pre id="helpText"></pre></div></div>
+<div class="modal" id="sectionColorModal"><div class="dialog">
+  <button class="close smallbtn" id="closeSectionColors">Close</button>
+  <h3>Individual Section Colors</h3>
+  <div class="hint">The list is generated from your current section layout. Changing A colors A1–A7, changing F colors F1–F7, etc. Any section without an override continues using Color 1 / Color 2 automatically.</div>
+  <div id="sectionColorList" class="sectionColorList"></div>
+  <div class="modalActions"><button id="resetSectionColors">Reset All to Alternating</button><button class="primary" id="applySectionColors">Apply & Close</button></div>
+</div></div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const defaults = {
+  modulesWide:168,rowGroups:'9,9,9,8,8',colGroups:Array(28).fill(6).join(','),sectionsPerBlock:7,
+  horizontalView:'Front',verticalOrder:'Bottom to Top',color1:'#F4CCCC',color2:'#FFF2CC',textColor:'#000000',gridColor:'#000000',
+  moduleWidth:60,moduleHeight:60,gridThickness:2,showLabels:true
+};
+let customSectionColors={};
+let previewZoom=1;
+function parsePositiveList(v){const a=String(v).split(',').map(s=>s.trim()).filter(Boolean).map(Number);if(!a.length||a.some(n=>!Number.isInteger(n)||n<=0))throw new Error('Section sizes must be positive integers separated by commas.');return a}
+function alphaLabel(i){let n=i+1,s='';while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26)}return s}
+function normHex(v,fallback='#000000'){let s=String(v||'').trim();if(/^#[0-9a-f]{3}$/i.test(s))s='#'+s.slice(1).split('').map(c=>c+c).join('');if(/^#[0-9a-f]{6}$/i.test(s))return s.toUpperCase();return fallback}
+function hexRgb(h){h=normHex(h);return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function escapeXml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function pdfEscape(s){return String(s).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)')}
+function num(id,fb=1){const n=parseInt($(id).value,10);return Number.isFinite(n)&&n>0?n:fb}
+function settings(){
+  const rowGroups=parsePositiveList($('rowGroups').value), colGroups=parsePositiveList($('colGroups').value);
+  const cols=colGroups.reduce((a,b)=>a+b,0), rows=rowGroups.reduce((a,b)=>a+b,0);
+  if(num('modulesWide',cols)!==cols)$('modulesWide').value=cols;
+  return {modulesWide:cols,rowGroups,colGroups,rows,sectionsPerBlock:num('sectionsPerBlock',7),horizontalView:$('horizontalView').value,verticalOrder:$('verticalOrder').value,
+    color1:normHex($('color1Hex').value,'#F4CCCC'),color2:normHex($('color2Hex').value,'#FFF2CC'),textColor:normHex($('textColorHex').value,'#000000'),gridColor:normHex($('gridColorHex').value,'#000000'),
+    moduleWidth:num('moduleWidth',60),moduleHeight:num('moduleHeight',60),gridThickness:num('gridThickness',2),showLabels:$('showLabels').checked,sectionColors:{...customSectionColors}};
+}
+function sectionIndex(pos,sizes){let run=0;for(let i=0;i<sizes.length;i++){if(pos>=run&&pos<run+sizes[i])return [i,pos-run];run+=sizes[i]}return [sizes.length-1,sizes[sizes.length-1]-1]}
+function cellInfo(s,col,row){
+  const rear=s.horizontalView==='Rear', top=s.verticalOrder==='Top to Bottom';
+  const colFromStart=rear?col:s.modulesWide-1-col; const [secX,lc0]=sectionIndex(colFromStart,s.colGroups);
+  const rowFromStart=top?row:s.rows-1-row; const [secY,lr0]=sectionIndex(rowFromStart,s.rowGroups);
+  const alphaBlock=Math.floor(secX/s.sectionsPerBlock), number=(secX%s.sectionsPerBlock)+1, li=alphaBlock*s.rowGroups.length+secY;
+  return {label:alphaLabel(li)+number,letterIndex:li,localCol:lc0+1,localRow:lr0+1,secX,secY};
+}
+function sectionRects(s){
+  const out=[],blocks=Math.ceil(s.colGroups.length/s.sectionsPerBlock),rear=s.horizontalView==='Rear',top=s.verticalOrder==='Top to Bottom';
+  for(let ab=0;ab<blocks;ab++){
+    const first=ab*s.sectionsPerBlock,last=Math.min(s.colGroups.length,first+s.sectionsPerBlock),start=s.colGroups.slice(0,first).reduce((a,b)=>a+b,0),w=s.colGroups.slice(first,last).reduce((a,b)=>a+b,0),x=rear?start:s.modulesWide-start-w;
+    for(let sy=0;sy<s.rowGroups.length;sy++){const h=s.rowGroups[sy],sv=s.rowGroups.slice(0,sy).reduce((a,b)=>a+b,0),y=top?sv:s.rows-sv-h,li=ab*s.rowGroups.length+sy;out.push({x,y,w,h,li})}
+  } return out;
+}
+function sectionColor(s,li){const key=alphaLabel(li);return s.sectionColors[key]||((li%2===0)?s.color1:s.color2)}
+function usedSectionCount(s){return Math.ceil(s.colGroups.length/s.sectionsPerBlock)*s.rowGroups.length}
+function startCornerText(s){return `${s.horizontalView} + ${s.verticalOrder}: A1 / 1:1 starts ${s.verticalOrder.startsWith('Top')?'top':'bottom'}-${s.horizontalView==='Rear'?'left':'right'}.`}
+function validateUI(){try{const s=settings();$('layoutTotal').textContent=`Total: ${s.modulesWide} × ${s.rows} = ${(s.modulesWide*s.rows).toLocaleString()} modules`;$('layoutWarning').textContent='';$('summary').textContent=`${s.modulesWide} × ${s.rows} (${(s.modulesWide*s.rows).toLocaleString()} modules) • module ${s.moduleWidth}×${s.moduleHeight}px • ${s.colGroups.length} horizontal sections`;$('startCorner').textContent=startCornerText(s);const used=new Set(Array.from({length:usedSectionCount(s)},(_,i)=>alphaLabel(i))),n=Object.keys(customSectionColors).filter(k=>used.has(k)&&customSectionColors[k]).length;$('sectionColorSummary').textContent=n?`${n} section color override${n===1?'':'s'} active. Other sections use the alternating colors.`:'Uses the alternating colors until you override individual letter sections.';return s}catch(e){$('layoutWarning').textContent=e.message;$('summary').textContent='Check settings';return null}}
+function drawCanvas(canvas,s,mw,mh,labels=true){
+  canvas.width=s.modulesWide*mw;canvas.height=s.rows*mh;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(const r of sectionRects(s)){ctx.fillStyle=sectionColor(s,r.li);ctx.fillRect(r.x*mw,r.y*mh,r.w*mw,r.h*mh)}
+  ctx.strokeStyle=s.gridColor;ctx.lineWidth=Math.max(1,s.gridThickness*Math.min(mw/s.moduleWidth,mh/s.moduleHeight));ctx.beginPath();
+  for(let c=0;c<=s.modulesWide;c++){const x=c*mw+.5;ctx.moveTo(x,0);ctx.lineTo(x,canvas.height)}for(let r=0;r<=s.rows;r++){const y=r*mh+.5;ctx.moveTo(0,y);ctx.lineTo(canvas.width,y)}ctx.stroke();
+  const base=Math.min(mw,mh);if(labels&&s.showLabels&&base>=16){const fs=Math.max(7,Math.round(base*.24)),off=Math.max(3,Math.round(base*.18));ctx.fillStyle=s.textColor;ctx.font=`700 ${fs}px Arial,Segoe UI,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';for(let row=0;row<s.rows;row++){for(let col=0;col<s.modulesWide;col++){const inf=cellInfo(s,col,row),cx=col*mw+mw/2,cy=row*mh+mh/2;ctx.fillText(inf.label,cx,cy-off);ctx.fillText(`${inf.localCol}:${inf.localRow}`,cx,cy+off)}}}
+}
+function refreshPreview(){const s=validateUI();if(!s)return;const wrap=$('previewWrap'),canvas=$('preview'),aw=Math.max(300,wrap.clientWidth-28),ah=Math.max(260,wrap.clientHeight-28),fit=Math.min(aw/(s.modulesWide*s.moduleWidth),ah/(s.rows*s.moduleHeight),1),scale=Math.max(.02,fit*previewZoom),mw=Math.max(2,Math.round(s.moduleWidth*scale)),mh=Math.max(2,Math.round(s.moduleHeight*scale)),show=s.showLabels&&Math.min(mw,mh)>=16;drawCanvas(canvas,s,mw,mh,show);canvas.style.width=`${canvas.width}px`;canvas.style.height=`${canvas.height}px`;$('previewNote').style.display=s.showLabels&&!show?'block':'none';$('zoomPct').textContent=`${Math.round(previewZoom*100)}%`}
+function buildSvg(s){const W=s.modulesWide*s.moduleWidth,H=s.rows*s.moduleHeight,base=Math.min(s.moduleWidth,s.moduleHeight),fs=Math.max(8,Math.round(base*.25)),off=Math.max(3,Math.round(base*.18));let a=[`<?xml version="1.0" encoding="UTF-8"?>`,`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`,`<rect width="${W}" height="${H}" fill="#FFFFFF"/>`];for(const r of sectionRects(s)){a.push(`<rect x="${r.x*s.moduleWidth}" y="${r.y*s.moduleHeight}" width="${r.w*s.moduleWidth}" height="${r.h*s.moduleHeight}" fill="${sectionColor(s,r.li)}"/>`)}let p=[];for(let c=0;c<=s.modulesWide;c++)p.push(`M${c*s.moduleWidth} 0V${H}`);for(let r=0;r<=s.rows;r++)p.push(`M0 ${r*s.moduleHeight}H${W}`);a.push(`<path d="${p.join(' ')}" fill="none" stroke="${s.gridColor}" stroke-width="${s.gridThickness}" shape-rendering="crispEdges"/>`);if(s.showLabels){a.push(`<g fill="${s.textColor}" font-family="Arial,Helvetica,sans-serif" font-size="${fs}" font-weight="700" text-anchor="middle">`);for(let row=0;row<s.rows;row++){const cy=row*s.moduleHeight+s.moduleHeight/2;for(let col=0;col<s.modulesWide;col++){const cx=col*s.moduleWidth+s.moduleWidth/2,inf=cellInfo(s,col,row);a.push(`<text x="${cx}" y="${cy-off}" dominant-baseline="middle">${escapeXml(inf.label)}</text>`);a.push(`<text x="${cx}" y="${cy+off}" dominant-baseline="middle">${inf.localCol}:${inf.localRow}</text>`)}}a.push('</g>')}a.push('</svg>');return a.join('\n')}
+async function downloadBlob(name,blob){
+  try{
+    const file=new File([blob],name,{type:blob.type||'application/octet-stream'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:name});
+      return;
+    }
+  }catch(e){
+    if(e&&e.name==='AbortError')return;
+  }
+  const u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),4000);
+}
+function exportSvg(){const s=validateUI();if(!s)return;downloadBlob('LED_Layout.svg',new Blob([buildSvg(s)],{type:'image/svg+xml;charset=utf-8'}))}
+function exportPng(){const s=validateUI();if(!s)return;const W=s.modulesWide*s.moduleWidth,H=s.rows*s.moduleHeight;if(W>32760||H>32760){alert(`PNG dimensions ${W} × ${H} may exceed browser canvas limits. Reduce Module Size or export SVG/PDF instead.`);return}if(W*H>120000000&&!confirm(`This PNG is ${W.toLocaleString()} × ${H.toLocaleString()} pixels and may use substantial memory. Continue?`))return;const c=document.createElement('canvas');drawCanvas(c,s,s.moduleWidth,s.moduleHeight,true);c.toBlob(b=>{if(b)downloadBlob('LED_Layout.png',b);else alert('PNG export failed. Try a smaller module size.')},'image/png')}
+function fmt(n){return (Math.round(n*1000)/1000).toString()}
+function pdfColorCmd(hex,stroke=false){const [r,g,b]=hexRgb(hex).map(v=>(v/255).toFixed(4));return `${r} ${g} ${b} ${stroke?'RG':'rg'}\n`}
+function buildPdf(s){
+  const Wpx=s.modulesWide*s.moduleWidth,Hpx=s.rows*s.moduleHeight,ptScale=Math.min(.75,14000/Wpx,14000/Hpx),mw=s.moduleWidth*ptScale,mh=s.moduleHeight*ptScale,W=Wpx*ptScale,H=Hpx*ptScale,base=Math.min(mw,mh),fs=Math.max(3,base*.25),off=base*.18;
+  let content='q\n';for(const r of sectionRects(s)){content+=pdfColorCmd(sectionColor(s,r.li));const x=r.x*mw,y=H-(r.y+r.h)*mh,w=r.w*mw,h=r.h*mh;content+=`${fmt(x)} ${fmt(y)} ${fmt(w)} ${fmt(h)} re f\n`}
+  content+=pdfColorCmd(s.gridColor,true)+`${fmt(Math.max(.3,s.gridThickness*ptScale))} w\n`;for(let c=0;c<=s.modulesWide;c++){const x=c*mw;content+=`${fmt(x)} 0 m ${fmt(x)} ${fmt(H)} l S\n`}for(let r=0;r<=s.rows;r++){const y=r*mh;content+=`0 ${fmt(y)} m ${fmt(W)} ${fmt(y)} l S\n`}
+  if(s.showLabels){content+=pdfColorCmd(s.textColor);for(let row=0;row<s.rows;row++){const cy=H-(row*mh+mh/2);for(let col=0;col<s.modulesWide;col++){const cx=col*mw+mw/2,inf=cellInfo(s,col,row),t1=inf.label,t2=`${inf.localCol}:${inf.localRow}`,w1=t1.length*fs*.6,w2=t2.length*fs*.6;content+=`BT /F1 ${fmt(fs)} Tf ${fmt(cx-w1/2)} ${fmt(cy+off-fs*.32)} Td (${pdfEscape(t1)}) Tj ET\n`;content+=`BT /F1 ${fmt(fs)} Tf ${fmt(cx-w2/2)} ${fmt(cy-off-fs*.32)} Td (${pdfEscape(t2)}) Tj ET\n`}}}
+  content+='Q\n';const objs=[];objs[1]='<< /Type /Catalog /Pages 2 0 R >>';objs[2]='<< /Type /Pages /Kids [3 0 R] /Count 1 >>';objs[3]=`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${fmt(W)} ${fmt(H)}] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>`;objs[4]='<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold >>';objs[5]=`<< /Length ${content.length} >>\nstream\n${content}endstream`;
+  let pdf='%PDF-1.4\n%----\n',offsets=[0];for(let i=1;i<=5;i++){offsets[i]=pdf.length;pdf+=`${i} 0 obj\n${objs[i]}\nendobj\n`}const xref=pdf.length;pdf+=`xref\n0 6\n0000000000 65535 f \n`;for(let i=1;i<=5;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';pdf+=`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;return new Blob([new TextEncoder().encode(pdf)],{type:'application/pdf'})
+}
+function exportPdf(){const s=validateUI();if(!s)return;downloadBlob('LED_Layout.pdf',buildPdf(s))}
+function presetObject(){const s=validateUI();if(!s)return null;return {app:'LED Layout Generator',version:'2.2',modules_wide:s.modulesWide,row_groups:s.rowGroups.join(','),col_groups:s.colGroups.join(','),sections_per_alpha_block:s.sectionsPerBlock,horizontal_view:s.horizontalView,vertical_order:s.verticalOrder,color1:s.color1,color2:s.color2,text_color:s.textColor,grid_color:s.gridColor,module_width:s.moduleWidth,module_height:s.moduleHeight,grid_thickness:s.gridThickness,show_labels:s.showLabels,section_colors:{...customSectionColors}}}
+function savePreset(){const o=presetObject();if(o)downloadBlob('LED_Layout_Preset.json',new Blob([JSON.stringify(o,null,2)],{type:'application/json'}))}
+function loadPresetObj(o){$('modulesWide').value=o.modules_wide??o.modulesWide??168;$('rowGroups').value=o.row_groups??o.rowGroups??defaults.rowGroups;$('colGroups').value=o.col_groups??o.colGroups??defaults.colGroups;$('sectionsPerBlock').value=o.sections_per_alpha_block??o.sectionsPerBlock??7;$('horizontalView').value=o.horizontal_view??o.horizontalView??'Front';$('verticalOrder').value=o.vertical_order??o.verticalOrder??'Bottom to Top';setColor('color1',o.color1??defaults.color1);setColor('color2',o.color2??defaults.color2);setColor('textColor',o.text_color??o.textColor??defaults.textColor);setColor('gridColor',o.grid_color??o.gridColor??defaults.gridColor);const cell=o.cell_size??60;$('moduleWidth').value=o.module_width??o.moduleWidth??cell;$('moduleHeight').value=o.module_height??o.moduleHeight??cell;$('gridThickness').value=o.grid_thickness??o.gridThickness??2;$('showLabels').checked=o.show_labels??o.showLabels??true;customSectionColors={};const sc=o.section_colors??o.sectionColors??{};for(const [k,v] of Object.entries(sc)){const h=normHex(v,'');if(h)customSectionColors[String(k).toUpperCase()]=h}refreshPreview()}
+function resetDefaults(){customSectionColors={};loadPresetObj(defaults)}
+function openSectionColorEditor(){const s=validateUI();if(!s)return;const list=$('sectionColorList');list.innerHTML='';const count=usedSectionCount(s);for(let li=0;li<count;li++){const letter=alphaLabel(li),effective=sectionColor(s,li),row=document.createElement('div');row.className='sectionColorRow';row.innerHTML=`<strong>${letter}</strong><input type="color" value="${effective.toLowerCase()}"><input class="colorhex" type="text" value="${effective}"><button class="smallbtn">${customSectionColors[letter]?'Reset':'Auto'}</button>`;const cp=row.children[1],hx=row.children[2],bt=row.children[3];bt.disabled=!customSectionColors[letter];const set=v=>{const h=normHex(v,effective);customSectionColors[letter]=h;cp.value=h.toLowerCase();hx.value=h;bt.textContent='Reset';bt.disabled=false;refreshPreview()};cp.oninput=()=>set(cp.value);hx.onchange=()=>set(hx.value);bt.onclick=()=>{delete customSectionColors[letter];const h=sectionColor(settings(),li);cp.value=h.toLowerCase();hx.value=h;bt.textContent='Auto';bt.disabled=true;refreshPreview()};list.appendChild(row)}$('sectionColorModal').classList.add('show')}
+function resetAllSectionColors(){customSectionColors={};openSectionColorEditor();refreshPreview()}
+function setColor(id,val){const h=normHex(val,id==='color1'?'#F4CCCC':id==='color2'?'#FFF2CC':'#000000');$(id).value=h.toLowerCase();$(id+'Hex').value=h}
+function bindColor(id){$(id).addEventListener('input',()=>{$(id+'Hex').value=$(id).value.toUpperCase();schedule()});$(id+'Hex').addEventListener('change',()=>{setColor(id,$(id+'Hex').value);schedule()})}
+let timer=null;function schedule(){clearTimeout(timer);timer=setTimeout(refreshPreview,180)}
+['modulesWide','rowGroups','colGroups','sectionsPerBlock','horizontalView','verticalOrder','moduleWidth','moduleHeight','gridThickness','showLabels'].forEach(id=>$(id).addEventListener(id==='showLabels'?'change':'input',schedule));['horizontalView','verticalOrder'].forEach(id=>$(id).addEventListener('change',schedule));['color1','color2','textColor','gridColor'].forEach(bindColor);
+$('refreshBtn').onclick=refreshPreview;$('svgBtn').onclick=exportSvg;$('pngBtn').onclick=exportPng;$('pdfBtn').onclick=exportPdf;$('savePresetBtn').onclick=savePreset;$('loadPresetBtn').onclick=()=>$('presetFile').click();$('resetBtn').onclick=()=>{if(confirm('Reset all settings to defaults?'))resetDefaults()};$('editSectionColorsBtn').onclick=openSectionColorEditor;$('closeSectionColors').onclick=()=>$('sectionColorModal').classList.remove('show');$('applySectionColors').onclick=()=>$('sectionColorModal').classList.remove('show');$('resetSectionColors').onclick=resetAllSectionColors;$('sectionColorModal').onclick=e=>{if(e.target===$('sectionColorModal'))$('sectionColorModal').classList.remove('show')};
+$('presetFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{loadPresetObj(JSON.parse(await f.text()))}catch(err){alert('Could not load preset: '+err.message)}e.target.value=''});
+
+function setZoomPct(p){p=Math.max(25,Math.min(800,Math.round(p/25)*25));$('zoomSlider').value=p;previewZoom=p/100;refreshPreview()}
+$('zoomSlider').oninput=()=>{previewZoom=Number($('zoomSlider').value)/100;refreshPreview()};$('zoomOutBtn').onclick=()=>setZoomPct(previewZoom*100-25);$('zoomInBtn').onclick=()=>setZoomPct(previewZoom*100+25);$('zoomFitBtn').onclick=()=>setZoomPct(100);
+$('previewWrap').addEventListener('wheel',e=>{if(e.ctrlKey){e.preventDefault();setZoomPct(previewZoom*100+(e.deltaY<0?25:-25))}},{passive:false});
+$('helpBtn').onclick=()=>{$('helpText').textContent=`PREVIEW ZOOM
+Use − / +, the zoom slider, or Fit. 100% means fit-to-window. Zoom in until each module is large enough for its label to appear. On desktop, hold Ctrl and use the mouse wheel. On iPad, pinch with two fingers to zoom, drag to pan, and double-tap to Fit.
+
+INDIVIDUAL SECTION COLORS
+Customize the layout first, then click Edit Section Colors. The editor automatically lists the letter sections currently used (A, B, C… F, G…). A custom color overrides the alternating Color 1 / Color 2 only for that letter. Presets save these overrides.
+
+LABELING
+Front + Bottom to Top: A1 / 1:1 starts bottom-right.
+Rear + Bottom to Top: A1 / 1:1 starts bottom-left.
+Front + Top to Bottom: A1 / 1:1 starts top-right.
+Rear + Top to Bottom: A1 / 1:1 starts top-left.
+
+SECTION PROGRESSION
+With 5 vertical bands and 7 sections per alphabet block, the bottom band progresses A1 … A7, then F1 … F7, then K1 …
+
+MODULE SIZE
+Width and Height can be different. Example: 100 × 50 creates wide rectangular modules.
+
+EXPORTS
+SVG: best for editing and unlimited sharpness.
+PNG: raster image at the exact Module Size pixel dimensions.
+PDF: vector grid/text generated locally.
+
+RUNTIME
+iPad PWA and Python-free. No Photoshop is required and no layout data is uploaded. Once installed to the Home Screen and cached, it can run offline.`;$('helpModal').classList.add('show')};$('closeHelp').onclick=()=>$('helpModal').classList.remove('show');$('helpModal').onclick=e=>{if(e.target===$('helpModal'))$('helpModal').classList.remove('show')};
+
+// ---------- iPad touch preview ----------
+const previewWrap=$('previewWrap');
+let touchPointers=new Map(),pinchStartDist=0,pinchStartZoom=1;
+let panStartX=0,panStartY=0,panStartLeft=0,panStartTop=0,lastTap=0;
+
+function pointerDistance(){
+  const a=[...touchPointers.values()];
+  if(a.length<2)return 0;
+  return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+}
+previewWrap.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='touch'||e.pointerType==='pen'){
+    previewWrap.setPointerCapture?.(e.pointerId);
+    touchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(touchPointers.size===1){
+      panStartX=e.clientX;panStartY=e.clientY;
+      panStartLeft=previewWrap.scrollLeft;panStartTop=previewWrap.scrollTop;
+      previewWrap.classList.add('dragging');
+    }else if(touchPointers.size===2){
+      pinchStartDist=pointerDistance();
+      pinchStartZoom=previewZoom;
+    }
+  }
+});
+previewWrap.addEventListener('pointermove',e=>{
+  if(!touchPointers.has(e.pointerId))return;
+  touchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(touchPointers.size===2){
+    const d=pointerDistance();
+    if(pinchStartDist>0){
+      const target=Math.max(.25,Math.min(8,pinchStartZoom*(d/pinchStartDist)));
+      previewZoom=target;
+      $('zoomSlider').value=Math.max(25,Math.min(800,Math.round(target*100/25)*25));
+      refreshPreview();
+    }
+  }else if(touchPointers.size===1){
+    const p=[...touchPointers.values()][0];
+    previewWrap.scrollLeft=panStartLeft-(p.x-panStartX);
+    previewWrap.scrollTop=panStartTop-(p.y-panStartY);
+  }
+});
+function endPreviewPointer(e){
+  touchPointers.delete(e.pointerId);
+  if(touchPointers.size<2){pinchStartDist=0}
+  if(touchPointers.size===0)previewWrap.classList.remove('dragging');
+  else if(touchPointers.size===1){
+    const p=[...touchPointers.values()][0];
+    panStartX=p.x;panStartY=p.y;panStartLeft=previewWrap.scrollLeft;panStartTop=previewWrap.scrollTop;
+  }
+}
+previewWrap.addEventListener('pointerup',endPreviewPointer);
+previewWrap.addEventListener('pointercancel',endPreviewPointer);
+previewWrap.addEventListener('dblclick',()=>setZoomPct(100));
+previewWrap.addEventListener('touchend',e=>{
+  if(e.touches.length===0){
+    const now=Date.now();
+    if(now-lastTap<320)setZoomPct(100);
+    lastTap=now;
+  }
+},{passive:true});
+
+// ---------- Settings drawer for portrait iPad ----------
+const sidebar=document.querySelector('.sidebar'),backdrop=$('sidebarBackdrop');
+function openDrawer(){sidebar.classList.add('open');backdrop.classList.add('show')}
+function closeDrawer(){sidebar.classList.remove('open');backdrop.classList.remove('show')}
+$('settingsDrawerBtn').onclick=openDrawer;
+backdrop.onclick=closeDrawer;
+
+// ---------- PWA / offline ----------
+const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+$('pwaStatus').textContent=standalone?'Running from the iPad Home Screen in standalone mode.':'Safari mode: use Share → Add to Home Screen after deployment.';
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+
+window.addEventListener('resize',schedule);resetDefaults();
+</script>
+</body>
+</html>
