@@ -1,0 +1,14 @@
+'use strict';
+function mobilePanel(panel){document.body.dataset.panel=panel;$('showLayout').setAttribute('aria-pressed',String(panel==='layout'));$('showSettings').setAttribute('aria-pressed',String(panel==='settings'));if(panel==='layout')requestAnimationFrame(resize);}
+$('showLayout').onclick=()=>mobilePanel('layout');$('showSettings').onclick=()=>mobilePanel('settings');
+const buildLayout=$('applyLayout').onclick;$('applyLayout').onclick=()=>{buildLayout();if(valid){mobilePanel('layout');requestAnimationFrame(()=>{resize();fitAll();});}};
+$('quit').onclick=saveProject;
+let exportUrl=null,exportFile=null;
+const shareDialog=document.createElement('dialog');shareDialog.id='shareDialog';shareDialog.innerHTML='<h2>Export ready</h2><p id="exportFilename"></p><p>Use Share to save in Files or open in another app.</p><div class="buttons"><button id="shareFile" class="primary">Share / Save to Files</button><a id="downloadFile" download>Download file</a><button id="closeExport">Done</button></div>';
+document.body.appendChild(shareDialog);
+download=function(name,blob){if(exportUrl)URL.revokeObjectURL(exportUrl);exportUrl=URL.createObjectURL(blob);exportFile=new File([blob],name,{type:blob.type});$('exportFilename').textContent=name;$('downloadFile').href=exportUrl;$('downloadFile').download=name;$('shareFile').hidden=!(navigator.canShare&&navigator.canShare({files:[exportFile]}));if(!shareDialog.open)shareDialog.showModal();};
+$('shareFile').onclick=async()=>{try{await navigator.share({files:[exportFile],title:exportFile.name});}catch(e){if(e.name!=='AbortError')toast('Sharing is unavailable. Use Download file instead.');}};
+$('closeExport').onclick=()=>shareDialog.close();shareDialog.addEventListener('close',()=>{if(exportUrl)URL.revokeObjectURL(exportUrl);exportUrl=null;exportFile=null;});
+const install=document.createElement('section');install.innerHTML='<h2>Home Screen app</h2><p class="hint">In Safari, use Share → Add to Home Screen, then Open as Web App if offered. Open the app once online before working offline.</p><p id="installStatus" role="status">Preparing offline access…</p><p class="hint">Projects stay on this device. Save JSON backups in Files to protect your work and move it between devices.</p>';
+document.getElementById('closeHelp').parentElement.insertBefore(install,document.getElementById('closeHelp'));
+if('serviceWorker' in navigator&&window.isSecureContext){navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>$('installStatus').textContent='Ready for offline use on this device.').catch(()=>$('installStatus').textContent=navigator.serviceWorker.controller?'Ready for offline use on this device.':'Offline setup failed. Reload while online to retry.');}else $('installStatus').textContent='Offline installation needs a secure website connection.';
